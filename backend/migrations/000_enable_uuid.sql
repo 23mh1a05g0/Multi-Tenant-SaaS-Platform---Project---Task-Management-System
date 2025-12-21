@@ -1,0 +1,5 @@
+-- UP
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- DOWN
+DROP EXTENSION IF EXISTS "uuid-ossp";
