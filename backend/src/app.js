@@ -7,10 +7,13 @@ require('dotenv').config();
 
 const express = require('express');
 const authRoutes = require('./routes/auth.routes');
+const tenantRoutes = require('./routes/tenant.routes');
 const app = express();
 
 /* -------------------- MIDDLEWARE -------------------- */
 app.use('/api/auth', authRoutes);
+app.use('/api/tenants', tenantRoutes);
+
 
 
 // Parse JSON request body
