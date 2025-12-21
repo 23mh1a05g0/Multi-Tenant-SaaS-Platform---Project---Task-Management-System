@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import ProjectDetails from './pages/ProjectDetails';
+import Users from './pages/Users';
 
 import ProtectedRoute from './auth/ProtectedRoute';
 
@@ -43,6 +44,18 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+
+
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoute>
+              <Users />
+            </ProtectedRoute>
+          }
+        />
+
 
         {/* Default Redirect */}
         <Route path="/" element={<Navigate to="/dashboard" />} />
