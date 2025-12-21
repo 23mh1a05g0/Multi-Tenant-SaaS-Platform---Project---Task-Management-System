@@ -9,12 +9,15 @@ const express = require('express');
 const authRoutes = require('./routes/auth.routes');
 const tenantRoutes = require('./routes/tenant.routes');
 const userRoutes = require('./routes/user.routes');
+const projectRoutes = require('./routes/project.routes');
 const app = express();
 
 /* -------------------- MIDDLEWARE -------------------- */
 app.use('/api/auth', authRoutes);
 app.use('/api/tenants', tenantRoutes);
 app.use('/api', userRoutes);
+app.use('/api', projectRoutes);
+
 
 
 
