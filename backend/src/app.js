@@ -1,68 +1,48 @@
-/**
- * Entry point for Backend API
- * Multi-Tenant SaaS Platform
- */
-
 require('dotenv').config();
-
 const express = require('express');
+const cors = require('cors');
+
 const authRoutes = require('./routes/auth.routes');
 const tenantRoutes = require('./routes/tenant.routes');
-const userRoutes = require('./routes/user.routes');
-const projectRoutes = require('./routes/project.routes');
+
 const app = express();
 
-/* -------------------- MIDDLEWARE -------------------- */
-app.use('/api/auth', authRoutes);
-app.use('/api/tenants', tenantRoutes);
-app.use('/api', userRoutes);
-app.use('/api', projectRoutes);
+/* ===============================
+   🔴 CORS (EXPLICIT)
+================================ */
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://frontend:3000'
+  ],
+  credentials: true
+}));
 
-
-
-
-
-// Parse JSON request body
+/* ===============================
+   🔴 BODY PARSERS FIRST
+================================ */
 app.use(express.json());
-
-// Parse URL-encoded data
 app.use(express.urlencoded({ extended: true }));
 
-/* -------------------- HEALTH CHECK -------------------- */
-/**
- * Mandatory health endpoint
- * Used by Docker & evaluation scripts
- */
-app.get('/api/health', async (req, res) => {
-  try {
-    res.status(200).json({
-      success: true,
-      message: 'Backend API is healthy',
-      data: {
-        status: 'UP',
-        timestamp: new Date().toISOString()
-      }
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Health check failed'
-    });
-  }
+/* ===============================
+   ROUTES
+================================ */
+app.use('/api/auth', authRoutes);
+app.use('/api/tenants', tenantRoutes);
+
+/* ===============================
+   HEALTH CHECK
+================================ */
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Backend API is healthy'
+  });
 });
 
-/* -------------------- ROUTES (PLACEHOLDERS) -------------------- */
-/**
- * These will be implemented in Step 3.1+
- * Keeping structure ready
- */
-
-// Example:
-// const authRoutes = require('./routes/auth.routes');
-// app.use('/api/auth', authRoutes);
-
-/* -------------------- 404 HANDLER -------------------- */
-
+/* ===============================
+   404 HANDLER
+================================ */
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -70,18 +50,10 @@ app.use((req, res) => {
   });
 });
 
-/* -------------------- GLOBAL ERROR HANDLER -------------------- */
-
-const errorHandler = require('./middleware/error.middleware');
-app.use(errorHandler);
-
-/* -------------------- SERVER START -------------------- */
-
-
-
-
+/* ===============================
+   START SERVER (IMPORTANT)
+================================ */
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
   console.log(`🚀 Backend server running on port ${PORT}`);
 });

@@ -1,24 +1,17 @@
 -- UP
-CREATE TYPE task_status_enum AS ENUM ('todo', 'in_progress', 'completed');
-CREATE TYPE task_priority_enum AS ENUM ('low', 'medium', 'high');
-
-CREATE TABLE tasks (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    status task_status_enum DEFAULT 'todo',
-    priority task_priority_enum DEFAULT 'medium',
-    assigned_to UUID REFERENCES users(id) ON DELETE SET NULL,
-    due_date DATE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS tasks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+  tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+  title VARCHAR NOT NULL,
+  description TEXT,
+  status VARCHAR CHECK (status IN ('todo','in_progress','completed')) DEFAULT 'todo',
+  priority VARCHAR CHECK (priority IN ('low','medium','high')) DEFAULT 'medium',
+  assigned_to UUID REFERENCES users(id),
+  due_date DATE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX idx_tasks_tenant_project ON tasks(tenant_id, project_id);
-
--- DOWN
-DROP TABLE IF EXISTS tasks;
-DROP TYPE IF EXISTS task_priority_enum;
-DROP TYPE IF EXISTS task_status_enum;
+-- -- DOWN
+-- DROP TABLE IF EXISTS tasks CASCADE;
