@@ -7,13 +7,31 @@ const TaskModal = ({ projectId, onClose }) => {
     description: '',
     priority: 'medium'
   });
+  const [loading, setLoading] = useState(false);
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!form.title) return alert('Title required');
 
-    await api.post(`/projects/${projectId}/tasks`, form);
-    onClose();
+    if (!form.title.trim()) {
+      return alert('Title is required');
+    }
+
+    try {
+      setLoading(true);
+
+      await api.post(`/projects/${projectId}/tasks`, {
+        title: form.title,
+        description: form.description,
+        priority: form.priority
+      });
+
+      onClose();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to create task');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -23,13 +41,18 @@ const TaskModal = ({ projectId, onClose }) => {
       <form onSubmit={submit}>
         <input
           placeholder="Title"
+          value={form.title}
           onChange={e => setForm({ ...form, title: e.target.value })}
         />
+
         <textarea
           placeholder="Description"
+          value={form.description}
           onChange={e => setForm({ ...form, description: e.target.value })}
         />
+
         <select
+          value={form.priority}
           onChange={e => setForm({ ...form, priority: e.target.value })}
         >
           <option value="low">Low</option>
@@ -37,8 +60,15 @@ const TaskModal = ({ projectId, onClose }) => {
           <option value="high">High</option>
         </select>
 
-        <button type="submit">Save</button>
-        <button onClick={onClose}>Cancel</button>
+        <br /><br />
+
+        <button type="submit" disabled={loading}>
+          {loading ? 'Saving...' : 'Save'}
+        </button>
+
+        <button type="button" onClick={onClose}>
+          Cancel
+        </button>
       </form>
     </div>
   );

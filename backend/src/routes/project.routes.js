@@ -24,6 +24,14 @@ router.get(
   projectController.listProjects
 );
 
+// API 12.5 - Get single project
+router.get(
+  '/projects/:projectId',
+  authenticate,
+  projectController.getProjectById
+);
+
+
 // API 14
 router.put(
   '/projects/:projectId',

@@ -146,6 +146,61 @@ exports.listProjects = async (req, res, next) => {
 };
 
 /**
+ * API 12.5: Get Single Project
+ * GET /api/projects/:projectId
+ */
+exports.getProjectById = async (req, res, next) => {
+  const { projectId } = req.params;
+  const tenantId = req.user.tenant_id;
+
+  try {
+    const projectRes = await db.query(
+      `
+      SELECT
+        p.id,
+        p.name,
+        p.description,
+        p.status,
+        p.created_at,
+        u.id AS creator_id,
+        u.full_name AS creator_name
+      FROM projects p
+      JOIN users u ON p.created_by = u.id
+      WHERE p.id = $1 AND p.tenant_id = $2
+      `,
+      [projectId, tenantId]
+    );
+
+    if (projectRes.rowCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found'
+      });
+    }
+
+    const p = projectRes.rows[0];
+
+    res.json({
+      success: true,
+      data: {
+        id: p.id,
+        name: p.name,
+        description: p.description,
+        status: p.status,
+        createdAt: p.created_at,
+        createdBy: {
+          id: p.creator_id,
+          fullName: p.creator_name
+        }
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+/**
  * API 14: Update Project
  * PUT /api/projects/:projectId
  */
