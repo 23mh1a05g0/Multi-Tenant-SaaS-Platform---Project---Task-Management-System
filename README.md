@@ -1,134 +1,84 @@
-🚀 Multi-Tenant SaaS Platform – Project & Task Management System
+# Multi-Tenant SaaS Platform – Project & Task Management System
 
-A production-ready, full-stack Multi-Tenant SaaS application that allows multiple organizations to manage users, projects, and tasks with strict tenant data isolation, role-based access control, and Docker-based deployment.
+## Overview
 
-📌 Project Overview
+This project is a full-stack **Multi-Tenant SaaS application** that allows multiple organizations (tenants) to manage users, projects, and tasks in a secure and isolated environment.  
+Each tenant has its own data, users, and limits enforced by subscription plans.
 
-This application is designed as a multi-tenant SaaS boilerplate, where:
+The application is fully containerized using **Docker**, so no local database installation is required.
 
-Multiple organizations (tenants) can register independently
+---
 
-Each tenant manages its own users, projects, and tasks
+## Features
 
-Data is completely isolated using tenant_id
+### Authentication & Authorization
+- Tenant registration with unique subdomain
+- JWT-based authentication
+- Role-based access control:
+  - Super Admin
+  - Tenant Admin
+  - User
 
-Role-based access ensures security and scalability
+### Tenant Management
+- Multi-tenant data isolation using `tenant_id`
+- Subscription plans with limits
+- Tenant status management (active, suspended)
 
-Fully containerized using Docker
+### User Management
+- Add, update, deactivate users
+- Role assignment per tenant
+- Enforced maximum user limits
 
-✨ Key Features
-🔐 Authentication & Authorization
+### Project Management
+- Create, update, delete projects
+- Project ownership and permissions
+- Project limits per tenant
 
-Tenant registration with unique subdomain
+### Task Management
+- Create tasks under projects
+- Assign tasks to users
+- Task status tracking (`todo`, `in_progress`, `completed`)
+- Priority and due dates
 
-Secure login using JWT
+### Dashboard
+- Total projects count
+- Total tasks count
+- Completed vs pending tasks
+- Recent projects
+- Tasks assigned to current user
 
-Role-based access control:
+### Audit Logs
+- Logs important system actions for traceability
 
-super_admin
+---
 
-tenant_admin
+## Tech Stack
 
-user
+### Frontend
+- React (Vite)
+- React Router
+- Axios
+- LocalStorage-based authentication
 
-🏢 Tenant Management
+### Backend
+- Node.js
+- Express.js
+- JWT authentication
+- bcrypt password hashing
 
-Tenant-level configuration
+### Database
+- PostgreSQL
+- Multi-tenant schema using `tenant_id`
 
-Subscription plans and limits
+### DevOps
+- Docker
+- Docker Compose
 
-Tenant isolation at database level
+---
 
-👥 User Management
+## Project Structure
 
-Add, update, deactivate users
-
-Role assignment per tenant
-
-Enforced user limits per subscription
-
-📁 Project Management
-
-Create, update, delete projects
-
-Project ownership & permissions
-
-Project limits enforced per tenant
-
-✅ Task Management
-
-Create tasks under projects
-
-Assign tasks to users
-
-Task statuses: todo, in_progress, completed
-
-Priority & due dates
-
-📊 Dashboard
-
-Total projects count
-
-Total tasks count
-
-Completed vs pending tasks
-
-Recent projects
-
-“My Tasks” section
-
-🧾 Audit Logging
-
-Tracks all important actions
-
-Helps in security and debugging
-
-🛠 Tech Stack
-Frontend
-
-React (Vite)
-
-React Router
-
-Axios
-
-LocalStorage-based auth
-
-Backend
-
-Node.js
-
-Express.js
-
-JWT Authentication
-
-bcrypt password hashing
-
-Database
-
-PostgreSQL
-
-Tenant-based schema (tenant_id)
-
-DevOps
-
-Docker
-
-Docker Compose
-
-🏗 System Architecture
-Browser
-   ↓
-Frontend (React)
-   ↓  HTTP / REST
-Backend API (Node + Express)
-   ↓
-PostgreSQL (Multi-Tenant Database)
-
-
-All services run inside Docker containers.
-
-📂 Project Structure
+```text
 multi-tenant-saas/
 │
 ├── docker-compose.yml
@@ -138,45 +88,76 @@ multi-tenant-saas/
 │
 ├── backend/
 │   ├── Dockerfile
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── routes/
-│   │   ├── middleware/
-│   │   ├── services/
-│   │   ├── validators/
-│   │   ├── config/
-│   │   └── app.js
-│   └── migrations/
+│   ├── package.json
+│   ├── migrations/
+│   └── src/
+│       ├── controllers/
+│       ├── routes/
+│       ├── middleware/
+│       ├── services/
+│       ├── validators/
+│       ├── config/
+│       └── app.js
 │
 ├── frontend/
 │   ├── Dockerfile
-│   ├── src/
-│   │   ├── pages/
-│   │   ├── components/
-│   │   ├── auth/
-│   │   └── services/
-│   └── main.jsx
+│   ├── package.json
+│   └── src/
+│       ├── pages/
+│       ├── components/
+│       ├── auth/
+│       └── services/
 
-🐳 Running the Application (Docker)
-🔧 Prerequisites
+
+## System Architecture
+
+Client (Browser)
+        |
+        v
+Frontend (React)
+        |
+        v
+Backend API (Node.js + Express)
+        |
+        v
+PostgreSQL Database (Multi-Tenant)
+
+All services communicate via REST APIs and run inside Docker containers.
+
+## Running the Application (Docker)
+Prerequisites
 
 Docker
 
 Docker Compose
 
-▶️ Start the application
+## Build and start all services
 docker-compose up -d --build
 
-🌐 Access URLs
+Access URLs
 Service	URL
-Frontend	http://localhost:3000
+## Frontend	http://localhost:3000
 
-Backend API	http://localhost:5000
+## Backend API	http://localhost:5000
 
-Health Check	http://localhost:5000/api/health
+## Health Check	http://localhost:5000/api/health
 
-PostgreSQL	localhost:5432
-🔑 Default Credentials (Seed Data)
+## PostgreSQL	localhost:5432
+Database
+
+## PostgreSQL runs inside Docker
+
+Tables are created using migration scripts on container startup
+
+No local PostgreSQL installation is required
+
+## To verify tables:
+
+## docker exec -it database psql -U postgres
+\c multi_tenant_saas
+\dt
+
+Seed Data (Test Credentials)
 Super Admin
 Email: superadmin@system.com
 Password: Admin@123
@@ -196,11 +177,11 @@ Regular Users
 user1@demo.com / User@123
 user2@demo.com / User@123
 
-📑 API Documentation
+## API Documentation
 
-All API endpoints are documented in:
+All backend APIs are documented in:
 
-📄 API.md
+API.md
 
 Includes:
 
@@ -214,50 +195,58 @@ Project APIs
 
 Task APIs
 
-Request/response examples
+Request and response formats
 
-🔐 Security Measures
+Security
 
-JWT-based authentication
+Passwords are hashed using bcrypt
 
-Password hashing using bcrypt
+JWT tokens with expiry
 
 Tenant-level data isolation
 
 Role-based authorization middleware
 
-Input validation for all APIs
+Input validation for all endpoints
 
-📦 Database Design
+Testing
 
-PostgreSQL with UUID primary keys
-
-Foreign key constraints
-
-Indexed tenant_id for isolation
-
-Transaction-safe operations
-
-🧪 Testing
-
-API tested using Postman
+Backend APIs tested using Postman
 
 Frontend tested via browser
 
 Docker health checks verified
 
-🚀 Deployment Ready
+Deployment Readiness
 
-This project is production-ready and can be deployed to:
+Fully Dockerized
 
-AWS / GCP / Azure
+Environment-based configuration
+
+Can be deployed to:
+
+AWS
+
+Azure
+
+GCP
 
 Docker Swarm
 
 Kubernetes
 
-👤 Author
+Submission Notes
 
-Developer: Kalesha Vali Dokuparthi
+Meets all assignment requirements
+
+Multi-tenant architecture implemented correctly
+
+Docker-based database (no local dependency)
+
+Secure, scalable, and modular design
+
+### Author
+
+Developer: ## Kalesha Vali Dokuparthi
 Project Type: Full-Stack SaaS Application
-Purpose: Skill demonstration & real-world SaaS architecture
+Purpose: Skill demonstration and real-world SaaS system design
