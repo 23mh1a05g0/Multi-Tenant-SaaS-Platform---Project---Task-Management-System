@@ -1,10 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import './Login.css';
 
 const Login = () => {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: '', password: '', tenantSubdomain: '' });
+  const [form, setForm] = useState({
+    email: '',
+    password: '',
+    tenantSubdomain: ''
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -32,22 +37,47 @@ const Login = () => {
   };
 
   return (
-    <div>
-      <h2>Login</h2>
+    <div className="login-container">
+      <div className="login-card">
+        <h2>Login</h2>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+        {error && <p className="error">{error}</p>}
 
-      <form onSubmit={handleSubmit}>
-        <input type="email" name="email" placeholder="Email" onChange={handleChange} />
-        <input type="password" name="password" placeholder="Password" onChange={handleChange} />
-        <input name="tenantSubdomain" placeholder="Tenant Subdomain" onChange={handleChange} />
+        <form onSubmit={handleSubmit}>
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            onChange={handleChange}
+            required
+          />
 
-        <button disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            onChange={handleChange}
+            required
+          />
 
-      <p>No account? <Link to="/register">Register</Link></p>
+          <input
+            name="tenantSubdomain"
+            placeholder="Tenant Subdomain"
+            onChange={handleChange}
+            required
+          />
+
+          <button type="submit" disabled={loading}>
+            {loading ? 'Logging in...' : 'Login'}
+          </button>
+        </form>
+
+        <div className="footer">
+          <p>
+            No account? <Link to="/register">Register</Link>
+          </p>
+        </div>
+      </div>
     </div>
   );
 };
