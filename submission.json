@@ -1,37 +1,62 @@
 {
   "testCredentials": {
-    "superAdmin": {
+    "super_admin": {
       "email": "superadmin@system.com",
       "password": "Admin@123",
       "role": "super_admin",
-      "tenant": null
+      "description": "System level administrator with access to all tenants"
     },
-    "tenants": [
-      {
+    "tenant_admin": {
+      "email": "admin@demo.com",
+      "password": "Demo@123",
+      "tenant": {
         "name": "Demo Company",
-        "subdomain": "demo",
-        "status": "active",
-        "subscriptionPlan": "pro",
-        "credentials": {
-          "tenantAdmin": {
-            "email": "admin@demo.com",
-            "password": "Demo@123",
-            "role": "tenant_admin"
-          },
-          "users": [
-            {
-              "email": "user1@demo.com",
-              "password": "User@123",
-              "role": "user"
-            },
-            {
-              "email": "user2@demo.com",
-              "password": "User@123",
-              "role": "user"
-            }
-          ]
-        }
+        "subdomain": "demo"
+      },
+      "role": "tenant_admin",
+      "description": "Administrator for Demo Company tenant"
+    },
+    "regular_user": {
+      "email": "user1@demo.com",
+      "password": "User@123",
+      "tenant": {
+        "name": "Demo Company",
+        "subdomain": "demo"
+      },
+      "role": "user",
+      "description": "Regular user under Demo Company tenant"
+    }
+  },
+  "application": {
+    "name": "Multi-Tenant SaaS Platform - Project & Task Management System",
+    "type": "Multi-Tenant SaaS Application",
+    "authentication": "JWT-based authentication",
+    "multiTenancy": "Shared database with tenant_id isolation",
+    "defaultTenantPlan": "free"
+  },
+  "docker": {
+    "services": {
+      "database": {
+        "type": "PostgreSQL",
+        "externalPort": 5432,
+        "internalPort": 5432
+      },
+      "backend": {
+        "framework": "Node.js + Express",
+        "externalPort": 5000,
+        "internalPort": 5000,
+        "healthCheck": "/api/health"
+      },
+      "frontend": {
+        "framework": "React",
+        "externalPort": 3000,
+        "internalPort": 3000
       }
-    ]
+    },
+    "startCommand": "docker-compose up -d"
+  },
+  "notes": {
+    "seedData": "All credentials listed above are pre-seeded automatically during Docker startup",
+    "important": "No manual database setup is required. Database migrations and seed data run automatically when Docker containers start."
   }
 }
