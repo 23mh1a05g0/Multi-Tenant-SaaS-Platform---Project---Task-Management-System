@@ -6,6 +6,8 @@ const authRoutes = require('./routes/auth.routes');
 const tenantRoutes = require('./routes/tenant.routes');
 const projectRoutes = require('./routes/project.routes');
 const taskRoutes = require("./routes/task.routes");
+const userRoutes = require('./routes/user.routes');
+const dashboardRoutes = require('./routes/dashboard.routes');
 
 
 const app = express();
@@ -34,6 +36,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tenants', tenantRoutes);
 app.use('/api', projectRoutes);
 app.use('/api', taskRoutes);
+app.use('/api', dashboardRoutes);
+app.use('/api', userRoutes);
 
 
 

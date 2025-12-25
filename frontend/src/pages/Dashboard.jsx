@@ -3,10 +3,15 @@ import api from '../services/api';
 import Navbar from '../components/Navbar';
 
 const Dashboard = () => {
-  const [stats, setStats] = useState({});
-  const [projects, setProjects] = useState([]);
-  const [tasks, setTasks] = useState([]);
-  const user = JSON.parse(localStorage.getItem('user'));
+  const [stats, setStats] = useState({
+    projects: 0,
+    totalTasks: 0,
+    completed: 0,
+    pending: 0
+  });
+  const [recentProjects, setRecentProjects] = useState([]);
+  const [myTasks, setMyTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadDashboard();
@@ -14,30 +19,29 @@ const Dashboard = () => {
 
   const loadDashboard = async () => {
     try {
-      const userRes = await api.get('/auth/me');
-      const projectRes = await api.get('/projects');
+      setLoading(true);
 
-      const taskRes = await api.get(
-        `/projects/${projectRes.data.data.projects[0]?.id}/tasks`,
-        { params: { assignedTo: user.id } }
-      );
+      const res = await api.get('/dashboard');
 
-      const allProjects = projectRes.data.data.projects;
-      const allTasks = taskRes.data.data.tasks;
-
-      setStats({
-        totalProjects: allProjects.length,
-        totalTasks: allTasks.length,
-        completedTasks: allTasks.filter(t => t.status === 'completed').length,
-        pendingTasks: allTasks.filter(t => t.status !== 'completed').length
-      });
-
-      setProjects(allProjects.slice(0, 5));
-      setTasks(allTasks);
+      setStats(res.data.data.stats);
+      setRecentProjects(res.data.data.recentProjects);
+      setMyTasks(res.data.data.myTasks);
     } catch (err) {
       console.error('Dashboard load error', err);
+      alert('Failed to load dashboard');
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div style={{ padding: 20 }}>Loading dashboard...</div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -47,29 +51,31 @@ const Dashboard = () => {
         <h2>Dashboard</h2>
 
         {/* Stats */}
-        <div style={{ display: 'flex', gap: 20 }}>
-          <div>Projects: {stats.totalProjects}</div>
-          <div>Total Tasks: {stats.totalTasks}</div>
-          <div>Completed: {stats.completedTasks}</div>
-          <div>Pending: {stats.pendingTasks}</div>
+        <div style={{ display: 'flex', gap: 30, marginBottom: 20 }}>
+          <div>Projects: <strong>{stats.projects}</strong></div>
+          <div>Total Tasks: <strong>{stats.totalTasks}</strong></div>
+          <div>Completed: <strong>{stats.completed}</strong></div>
+          <div>Pending: <strong>{stats.pending}</strong></div>
         </div>
 
         {/* Recent Projects */}
         <h3>Recent Projects</h3>
+        {recentProjects.length === 0 && <p>No projects found.</p>}
         <ul>
-          {projects.map(p => (
+          {recentProjects.map(p => (
             <li key={p.id}>
-              {p.name} – {p.status} (Tasks: {p.taskCount})
+              {p.name} — {p.status} (Tasks: {p.taskCount})
             </li>
           ))}
         </ul>
 
         {/* My Tasks */}
         <h3>My Tasks</h3>
+        {myTasks.length === 0 && <p>No tasks assigned to you.</p>}
         <ul>
-          {tasks.map(t => (
+          {myTasks.map(t => (
             <li key={t.id}>
-              {t.title} | {t.priority} | {t.dueDate || 'No due date'}
+              {t.title} | {t.priority} | {t.status} | {t.project_name}
             </li>
           ))}
         </ul>
