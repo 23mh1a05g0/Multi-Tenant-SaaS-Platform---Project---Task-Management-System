@@ -2,35 +2,24 @@ import { useEffect, useState } from 'react';
 import api from '../services/api';
 import Navbar from '../components/Navbar';
 import UserModal from '../components/UserModal';
+import '../styles/user.css';
 
 const Users = () => {
-  const user = JSON.parse(localStorage.getItem('user'));
+  const currentUser = JSON.parse(localStorage.getItem('user'));
   const [users, setUsers] = useState([]);
-  const [search, setSearch] = useState('');
-  const [role, setRole] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [editUser, setEditUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
-    if (user?.role === 'tenant_admin') {
-      loadUsers();
-    }
-  }, [role]);
+    if (currentUser?.role === 'tenant_admin') loadUsers();
+  }, []);
 
   const loadUsers = async () => {
-    const res = await api.get(`/tenants/${user.tenantId}/users`, {
-      params: { search, role }
-    });
+    const res = await api.get(`/tenants/${currentUser.tenantId}/users`);
     setUsers(res.data.data.users);
   };
 
-  const deleteUser = async (id) => {
-    if (!window.confirm('Delete this user?')) return;
-    await api.delete(`/users/${id}`);
-    loadUsers();
-  };
-
-  if (user?.role !== 'tenant_admin') {
+  if (currentUser?.role !== 'tenant_admin') {
     return (
       <>
         <Navbar />
@@ -43,39 +32,27 @@ const Users = () => {
     <>
       <Navbar />
 
-      <div style={{ padding: 20 }}>
-        <h2>Users</h2>
+      <div className="users-page">
+        <h2 className="users-title">Users</h2>
 
-        <button onClick={() => setShowModal(true)}>Add User</button>
+        <button className="btn-primary" onClick={() => {
+          setSelectedUser(null);
+          setShowModal(true);
+        }}>
+          Add User
+        </button>
 
-        <div style={{ marginTop: 10 }}>
-          <input
-            placeholder="Search by name or email"
-            onChange={e => setSearch(e.target.value)}
-          />
-
-          <select onChange={e => setRole(e.target.value)}>
-            <option value="">All Roles</option>
-            <option value="user">User</option>
-            <option value="tenant_admin">Tenant Admin</option>
-          </select>
-
-          <button onClick={loadUsers}>Apply</button>
-        </div>
-
-        {users.length === 0 && <p>No users found</p>}
-
-        <table border="1" cellPadding="8" style={{ marginTop: 10 }}>
+        <table className="users-table">
           <thead>
             <tr>
-              <th>Full Name</th>
+              <th>Name</th>
               <th>Email</th>
               <th>Role</th>
               <th>Status</th>
-              <th>Created</th>
-              <th>Actions</th>
+              <th>Action</th>
             </tr>
           </thead>
+
           <tbody>
             {users.map(u => (
               <tr key={u.id}>
@@ -83,14 +60,16 @@ const Users = () => {
                 <td>{u.email}</td>
                 <td>{u.role}</td>
                 <td>{u.isActive ? 'Active' : 'Inactive'}</td>
-                <td>{new Date(u.createdAt).toLocaleDateString()}</td>
                 <td>
-                  <button onClick={() => {
-                    setEditUser(u);
-                    setShowModal(true);
-                  }}>Edit</button>
-
-                  <button onClick={() => deleteUser(u.id)}>Delete</button>
+                  <button
+                    className="btn-secondary"
+                    onClick={() => {
+                      setSelectedUser(u);
+                      setShowModal(true);
+                    }}
+                  >
+                    Edit
+                  </button>
                 </td>
               </tr>
             ))}
@@ -100,10 +79,9 @@ const Users = () => {
 
       {showModal && (
         <UserModal
-          user={editUser}
+          user={selectedUser}
           onClose={() => {
             setShowModal(false);
-            setEditUser(null);
             loadUsers();
           }}
         />

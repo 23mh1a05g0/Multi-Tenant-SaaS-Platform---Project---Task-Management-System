@@ -1,6 +1,8 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import './navbar.css';
 
 const Navbar = () => {
+  const location = useLocation();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user'));
 
@@ -9,32 +11,39 @@ const Navbar = () => {
     navigate('/login');
   };
 
+  const isActive = (path) =>
+    location.pathname.startsWith(path) ? 'active' : '';
+
   return (
-    <nav style={{ padding: '10px', borderBottom: '1px solid #ccc' }}>
-      <strong>Multi-Tenant SaaS</strong>
+    <header className="navbar">
+      {/* LEFT */}
+      <div className="navbar-left">
+        <div className="logo">Multi-Tenant SaaS</div>
 
-      <span style={{ marginLeft: 20 }}>
-        <Link to="/dashboard">Dashboard</Link>{' | '}
-        <Link to="/projects">Projects</Link>
+        <nav className="nav-links">
+          <Link className={isActive('/dashboard')} to="/dashboard">Dashboard</Link>
+          <Link className={isActive('/projects')} to="/projects">Projects</Link>
+          <Link className={isActive('/tasks')} to="/tasks">Tasks</Link>
+          {user?.role === 'tenant_admin' && (
+            <Link className={isActive('/users')} to="/users">Users</Link>
+          )}
+        </nav>
+      </div>
 
-        {(user?.role === 'tenant_admin' || user?.role === 'super_admin') && (
-          <> | <Link to="/tasks">Tasks</Link></>
-        )}
+      {/* RIGHT */}
+      <div className="navbar-right">
+        <div className="user-info">
+          <span className="user-name">{user?.fullName}</span>
+          <span className={`role-badge ${user?.role}`}>
+            {user?.role}
+          </span>
+        </div>
 
-        {user?.role === 'tenant_admin' && (
-          <> | <Link to="/users">Users</Link></>
-        )}
-
-        {user?.role === 'super_admin' && (
-          <> | <Link to="/tenants">Tenants</Link></>
-        )}
-      </span>
-
-      <span style={{ float: 'right' }}>
-        {user?.fullName} ({user?.role}) {' '}
-        <button onClick={logout}>Logout</button>
-      </span>
-    </nav>
+        <button className="logout-btn" onClick={logout}>
+          Logout
+        </button>
+      </div>
+    </header>
   );
 };
 

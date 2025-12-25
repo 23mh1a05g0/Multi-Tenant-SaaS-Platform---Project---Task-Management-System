@@ -1,75 +1,66 @@
 import { useState } from 'react';
 import api from '../services/api';
+import '../styles/modal.css';
 
-const TaskModal = ({ projectId, onClose }) => {
+const TaskModal = ({ projectId, task, onClose }) => {
   const [form, setForm] = useState({
-    title: '',
-    description: '',
-    priority: 'medium'
+    title: task?.title || '',
+    description: task?.description || '',
+    priority: task?.priority || 'medium'
   });
-  const [loading, setLoading] = useState(false);
 
   const submit = async (e) => {
     e.preventDefault();
 
-    if (!form.title.trim()) {
-      return alert('Title is required');
+    if (!form.title) return alert('Title required');
+
+    if (task) {
+      await api.put(`/tasks/${task.id}`, form);
+    } else {
+      await api.post(`/projects/${projectId}/tasks`, form);
     }
 
-    try {
-      setLoading(true);
-
-      await api.post(`/projects/${projectId}/tasks`, {
-        title: form.title,
-        description: form.description,
-        priority: form.priority
-      });
-
-      onClose();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to create task');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    onClose();
   };
 
   return (
-    <div style={{ background: '#eee', padding: 20 }}>
-      <h3>Add Task</h3>
+    <div className="modal-overlay">
+      <div className="modal">
+        <h3>{task ? 'Edit Task' : 'Add Task'}</h3>
 
-      <form onSubmit={submit}>
-        <input
-          placeholder="Title"
-          value={form.title}
-          onChange={e => setForm({ ...form, title: e.target.value })}
-        />
+        <form onSubmit={submit}>
+          <input
+            placeholder="Task title"
+            value={form.title}
+            onChange={e => setForm({ ...form, title: e.target.value })}
+          />
 
-        <textarea
-          placeholder="Description"
-          value={form.description}
-          onChange={e => setForm({ ...form, description: e.target.value })}
-        />
+          <textarea
+            placeholder="Description"
+            rows="3"
+            value={form.description}
+            onChange={e => setForm({ ...form, description: e.target.value })}
+          />
 
-        <select
-          value={form.priority}
-          onChange={e => setForm({ ...form, priority: e.target.value })}
-        >
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-        </select>
+          <select
+            value={form.priority}
+            onChange={e => setForm({ ...form, priority: e.target.value })}
+          >
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
 
-        <br /><br />
-
-        <button type="submit" disabled={loading}>
-          {loading ? 'Saving...' : 'Save'}
-        </button>
-
-        <button type="button" onClick={onClose}>
-          Cancel
-        </button>
-      </form>
+          <div className="modal-actions">
+            <button type="button" className="btn btn-secondary" onClick={onClose}>
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

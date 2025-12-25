@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../services/api';
+import '../styles/modal.css';
 
 const ProjectModal = ({ project, onClose }) => {
   const [form, setForm] = useState({
@@ -8,96 +9,58 @@ const ProjectModal = ({ project, onClose }) => {
     status: project?.status || 'active'
   });
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSubmit = async (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-    setError('');
 
-    if (!form.name.trim()) {
-      setError('Project name is required');
-      return;
+    if (!form.name) return alert('Project name required');
+
+    if (project) {
+      await api.put(`/projects/${project.id}`, form);
+    } else {
+      await api.post('/projects', form);
     }
 
-    try {
-      setLoading(true);
-
-      if (project) {
-        // EDIT project
-        await api.put(`/projects/${project.id}`, form);
-      } else {
-        // CREATE project
-        await api.post('/projects', {
-          name: form.name,
-          description: form.description,
-          status: form.status
-        });
-      }
-
-      // ✅ only close on success
-      onClose();
-
-    } catch (err) {
-      console.error(err);
-      setError(
-        err.response?.data?.message ||
-        'Failed to save project'
-      );
-    } finally {
-      setLoading(false);
-    }
+    onClose();
   };
 
   return (
-    <div style={{ background: '#eee', padding: 20 }}>
-      <h3>{project ? 'Edit Project' : 'Create Project'}</h3>
+    <div className="modal-overlay">
+      <div className="modal">
+        <h3>{project ? 'Edit Project' : 'Create Project'}</h3>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+        <form onSubmit={submit}>
+          <input
+            placeholder="Project name"
+            value={form.name}
+            onChange={e => setForm({ ...form, name: e.target.value })}
+          />
 
-      <form onSubmit={handleSubmit}>
-        <input
-          placeholder="Project Name"
-          value={form.name}
-          onChange={e =>
-            setForm({ ...form, name: e.target.value })
-          }
-        />
+          <textarea
+            placeholder="Description"
+            rows="3"
+            value={form.description}
+            onChange={e => setForm({ ...form, description: e.target.value })}
+          />
 
-        <textarea
-          placeholder="Description"
-          value={form.description}
-          onChange={e =>
-            setForm({ ...form, description: e.target.value })
-          }
-        />
-
-        <select
-          value={form.status}
-          onChange={e =>
-            setForm({ ...form, status: e.target.value })
-          }
-        >
-          <option value="active">Active</option>
-          <option value="archived">Archived</option>
-          <option value="completed">Completed</option>
-        </select>
-
-        <div style={{ marginTop: 10 }}>
-          <button type="submit" disabled={loading}>
-            {loading ? 'Saving...' : 'Save'}
-          </button>
-
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={loading}
-            style={{ marginLeft: 10 }}
+          <select
+            value={form.status}
+            onChange={e => setForm({ ...form, status: e.target.value })}
           >
-            Cancel
-          </button>
-        </div>
-      </form>
+            <option value="active">Active</option>
+            <option value="archived">Archived</option>
+            <option value="completed">Completed</option>
+          </select>
+
+          <div className="modal-actions">
+            <button type="button" className="btn btn-secondary" onClick={onClose}>
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

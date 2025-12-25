@@ -1,0 +1,128 @@
+/* Page */
+.project-details {
+  padding: 24px;
+  background: #020617;
+  min-height: 100vh;
+  color: #e5e7eb;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* Header */
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+}
+
+.project-header h2 {
+  margin-bottom: 6px;
+}
+
+.project-desc {
+  color: #94a3b8;
+  max-width: 600px;
+}
+
+/* Tasks Section */
+.tasks-section {
+  background: #0f172a;
+  padding: 22px;
+  border-radius: 16px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+}
+
+.tasks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Task Card */
+.task-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  background: #020617;
+  padding: 18px;
+  border-radius: 14px;
+  margin-bottom: 14px;
+  border: 1px solid #1e293b;
+}
+
+.task-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+/* Text */
+.muted {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.highlight {
+  color: #38bdf8;
+}
+
+.empty {
+  color: #64748b;
+  font-style: italic;
+}
+
+/* Buttons */
+.btn-primary {
+  background: #6366f1;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.btn-success {
+  background: #16a34a;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-danger {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Badges */
+.badge {
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.badge.active {
+  background: #1e40af;
+}
+
+.badge.completed {
+  background: #166534;
+}
+
+.badge.pending {
+  background: #92400e;
+}
+
+/* Loading */
+.loading {
+  padding: 30px;
+  color: #94a3b8;
+}

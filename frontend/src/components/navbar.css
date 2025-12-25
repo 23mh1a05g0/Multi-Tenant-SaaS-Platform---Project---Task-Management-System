@@ -1,0 +1,126 @@
+/* ===== NAVBAR WRAPPER ===== */
+
+.navbar {
+  height: 64px;
+  background: #020617;
+  border-bottom: 1px solid #1e293b;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  color: #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* ===== LEFT ===== */
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.logo {
+  font-size: 18px;
+  font-weight: 700;
+  color: #e5e7eb;
+  letter-spacing: 0.4px;
+}
+
+/* ===== NAV LINKS ===== */
+
+.nav-links {
+  display: flex;
+  gap: 18px;
+}
+
+.nav-links a {
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 14px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.nav-links a:hover {
+  color: #e5e7eb;
+  background: rgba(99,102,241,0.15);
+}
+
+.nav-links a.active {
+  background: rgba(99,102,241,0.25);
+  color: #c7d2fe;
+}
+
+/* ===== RIGHT ===== */
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* USER INFO */
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ROLE BADGES */
+
+.role-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  text-transform: capitalize;
+}
+
+.role-badge.tenant_admin {
+  background: #312e81;
+  color: #c7d2fe;
+}
+
+.role-badge.user {
+  background: #1e293b;
+  color: #93c5fd;
+}
+
+.role-badge.super_admin {
+  background: #7c2d12;
+  color: #fed7aa;
+}
+
+/* LOGOUT */
+
+.logout-btn {
+  background: transparent;
+  border: 1px solid #334155;
+  color: #e5e7eb;
+  padding: 6px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: #7f1d1d;
+  border-color: #7f1d1d;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+  .nav-links {
+    display: none;
+  }
+}

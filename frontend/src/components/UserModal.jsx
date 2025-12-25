@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import api from '../services/api';
+import '../styles/modal.css';
 
 const UserModal = ({ user, onClose }) => {
+  const isEdit = Boolean(user);
+
   const currentUser = JSON.parse(localStorage.getItem('user'));
+  const tenantId = currentUser?.tenantId;
 
   const [form, setForm] = useState({
-    email: user?.email || '',
     fullName: user?.fullName || '',
+    email: user?.email || '',
     password: '',
     role: user?.role || 'user',
     isActive: user?.isActive ?? true
@@ -15,81 +19,101 @@ const UserModal = ({ user, onClose }) => {
   const submit = async (e) => {
     e.preventDefault();
 
-    if (!form.email || !form.fullName) {
-      return alert('Email and Full Name are required');
+    if (!form.fullName || !form.email) {
+      return alert('Full name and email are required');
     }
 
-    if (!user && !form.password) {
-      return alert('Password required for new user');
-    }
+    try {
+      if (isEdit) {
+        // 🔵 UPDATE USER
+        await api.put(`/users/${user.id}`, {
+          fullName: form.fullName,
+          role: form.role,
+          isActive: form.isActive
+        });
+      } else {
+        // 🟢 CREATE USER (CORRECT ENDPOINT)
+        if (!form.password) {
+          return alert('Password is required');
+        }
 
-    if (user) {
-      await api.put(`/users/${user.id}`, {
-        fullName: form.fullName,
-        role: form.role,
-        isActive: form.isActive
-      });
-    } else {
-      await api.post(`/tenants/${currentUser.tenantId}/users`, {
-        email: form.email,
-        password: form.password,
-        fullName: form.fullName,
-        role: form.role
-      });
-    }
+        await api.post(`/tenants/${tenantId}/users`, {
+          fullName: form.fullName,
+          email: form.email,
+          password: form.password,
+          role: form.role
+        });
+      }
 
-    onClose();
+      onClose();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to save user');
+    }
   };
 
   return (
-    <div style={{ background: '#eee', padding: 20 }}>
-      <h3>{user ? 'Edit User' : 'Add User'}</h3>
+    <div className="modal-overlay">
+      <div className="modal-card">
+        <h3 className="modal-title">
+          {isEdit ? 'Edit User' : 'Add User'}
+        </h3>
 
-      <form onSubmit={submit}>
-        {!user && (
-          <input
-            placeholder="Email"
-            value={form.email}
-            onChange={e => setForm({ ...form, email: e.target.value })}
-          />
-        )}
+        <form onSubmit={submit}>
+          <div className="form-group">
+            <label>Full Name</label>
+            <input
+              value={form.fullName}
+              onChange={e => setForm({ ...form, fullName: e.target.value })}
+            />
+          </div>
 
-        <input
-          placeholder="Full Name"
-          value={form.fullName}
-          onChange={e => setForm({ ...form, fullName: e.target.value })}
-        />
+          <div className="form-group">
+            <label>Email</label>
+            <input
+              value={form.email}
+              disabled={isEdit}
+              onChange={e => setForm({ ...form, email: e.target.value })}
+            />
+          </div>
 
-        {!user && (
-          <input
-            type="password"
-            placeholder="Password"
-            onChange={e => setForm({ ...form, password: e.target.value })}
-          />
-        )}
+          {!isEdit && (
+            <div className="form-group">
+              <label>Password</label>
+              <input
+                type="password"
+                onChange={e => setForm({ ...form, password: e.target.value })}
+              />
+            </div>
+          )}
 
-        <select
-          value={form.role}
-          onChange={e => setForm({ ...form, role: e.target.value })}
-        >
-          <option value="user">User</option>
-          <option value="tenant_admin">Tenant Admin</option>
-        </select>
+          <div className="form-group">
+            <label>Role</label>
+            <select
+              value={form.role}
+              onChange={e => setForm({ ...form, role: e.target.value })}
+            >
+              <option value="user">User</option>
+              <option value="tenant_admin">Tenant Admin</option>
+            </select>
+          </div>
 
-        <label>
-          <input
-            type="checkbox"
-            checked={form.isActive}
-            onChange={e => setForm({ ...form, isActive: e.target.checked })}
-          />
-          Active
-        </label>
-
-        <br />
-
-        <button type="submit">Save</button>
-        <button type="button" onClick={onClose}>Cancel</button>
-      </form>
+          <div className="modal-actions">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn-primary"
+            >
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
