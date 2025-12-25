@@ -4,9 +4,16 @@ import Navbar from '../components/Navbar';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  const [stats, setStats] = useState({});
+  const [stats, setStats] = useState({
+    totalProjects: 0,
+    totalTasks: 0,
+    completedTasks: 0,
+    pendingTasks: 0
+  });
+
   const [projects, setProjects] = useState([]);
-  const [tasks, setTasks] = useState([]);
+  const [myTasks, setMyTasks] = useState([]);
+
   const user = JSON.parse(localStorage.getItem('user'));
 
   useEffect(() => {
@@ -15,30 +22,36 @@ const Dashboard = () => {
 
   const loadDashboard = async () => {
     try {
+      // 1️⃣ Fetch all projects
       const projectRes = await api.get('/projects');
-
-      const projectList = projectRes.data.data.projects || [];
+      const allProjects = projectRes.data.data.projects || [];
 
       let allTasks = [];
-      if (projectList.length > 0) {
-        const taskRes = await api.get(
-          `/projects/${projectList[0].id}/tasks`,
-          { params: { assignedTo: user.id } }
-        );
-        allTasks = taskRes.data.data.tasks || [];
+
+      // 2️⃣ Fetch tasks for EACH project
+      for (const project of allProjects) {
+        const taskRes = await api.get(`/projects/${project.id}/tasks`);
+        allTasks = [...allTasks, ...(taskRes.data.data.tasks || [])];
       }
 
+      // 3️⃣ My tasks (assigned to logged-in user)
+      const assignedTasks = allTasks.filter(
+        t => t.assignedTo && t.assignedTo.id === user.id
+      );
+
+      // 4️⃣ Set dashboard stats
       setStats({
-        totalProjects: projectList.length,
+        totalProjects: allProjects.length,
         totalTasks: allTasks.length,
         completedTasks: allTasks.filter(t => t.status === 'completed').length,
         pendingTasks: allTasks.filter(t => t.status !== 'completed').length
       });
 
-      setProjects(projectList.slice(0, 5));
-      setTasks(allTasks);
+      // 5️⃣ Recent projects (top 5)
+      setProjects(allProjects.slice(0, 5));
+      setMyTasks(assignedTasks);
     } catch (err) {
-      console.error('Dashboard load error', err);
+      console.error('Dashboard load error:', err);
     }
   };
 
@@ -49,30 +62,30 @@ const Dashboard = () => {
       <div className="dashboard">
         <h2 className="dashboard-title">Dashboard</h2>
 
-        {/* Stats Cards */}
+        {/* ================= STATS ================= */}
         <div className="stats-grid">
           <div className="stat-card">
             <h4>Total Projects</h4>
-            <p>{stats.totalProjects || 0}</p>
+            <p>{stats.totalProjects}</p>
           </div>
 
           <div className="stat-card">
             <h4>Total Tasks</h4>
-            <p>{stats.totalTasks || 0}</p>
+            <p>{stats.totalTasks}</p>
           </div>
 
           <div className="stat-card success">
             <h4>Completed Tasks</h4>
-            <p>{stats.completedTasks || 0}</p>
+            <p>{stats.completedTasks}</p>
           </div>
 
           <div className="stat-card warning">
             <h4>Pending Tasks</h4>
-            <p>{stats.pendingTasks || 0}</p>
+            <p>{stats.pendingTasks}</p>
           </div>
         </div>
 
-        {/* Recent Projects */}
+        {/* ================= RECENT PROJECTS ================= */}
         <div className="section">
           <h3>Recent Projects</h3>
 
@@ -91,24 +104,26 @@ const Dashboard = () => {
                 </li>
               ))}
             </ul>
-
           )}
         </div>
 
-        {/* My Tasks */}
+        {/* ================= MY TASKS ================= */}
         <div className="section">
           <h3>My Tasks</h3>
 
-          {tasks.length === 0 ? (
+          {myTasks.length === 0 ? (
             <p className="empty">No tasks assigned</p>
           ) : (
             <ul className="task-list">
-              {tasks.map(t => (
+              {myTasks.map(t => (
                 <li key={t.id}>
                   <div>
-                    <strong>{t.title}</strong>
-                    <div className="muted">{t.priority} priority</div>
+                    <span className="task-title">{t.title}</span>
+                    <div className="muted">
+                      Priority: {t.priority} | Status: {t.status}
+                    </div>
                   </div>
+
                   <span className={`badge ${t.status}`}>{t.status}</span>
                 </li>
               ))}
