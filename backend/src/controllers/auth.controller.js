@@ -1,157 +1,171 @@
-const pool = require('../config/db');
+const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { logAudit } = require('../services/audit.service');
 
-/* ================================
-   API 1: REGISTER TENANT
-================================ */
+/**
+ * API 1: Register Tenant
+ * POST /api/auth/register-tenant
+ */
 exports.registerTenant = async (req, res, next) => {
   const { tenantName, subdomain, adminEmail, adminPassword, adminFullName } = req.body;
 
-  /* ---- VALIDATION (CRITICAL) ---- */
-  if (!tenantName || !subdomain || !adminEmail || !adminPassword || !adminFullName) {
-    return res.status(400).json({
-      success: false,
-      message: 'All fields are required'
-    });
-  }
-
-  if (adminPassword.length < 8) {
-    return res.status(400).json({
-      success: false,
-      message: 'Password must be at least 8 characters'
-    });
-  }
-
-  const client = await pool.connect();
-
   try {
-    await client.query('BEGIN');
+    await db.query('BEGIN');
 
-    /* ---- CHECK SUBDOMAIN ---- */
-    const tenantCheck = await client.query(
-      'SELECT id FROM tenants WHERE subdomain = $1',
+    // Check subdomain uniqueness
+    const tenantCheck = await db.query(
+      'SELECT id FROM tenants WHERE subdomain=$1',
       [subdomain]
     );
 
     if (tenantCheck.rowCount > 0) {
-      await client.query('ROLLBACK');
+      await db.query('ROLLBACK');
       return res.status(409).json({
         success: false,
         message: 'Subdomain already exists'
       });
     }
 
-    /* ---- CREATE TENANT ---- */
-    const tenantResult = await client.query(
-      `INSERT INTO tenants
-       (name, subdomain, status, subscription_plan, max_users, max_projects)
+    // Create tenant
+    const tenantRes = await db.query(
+      `INSERT INTO tenants (name, subdomain, status, subscription_plan, max_users, max_projects)
        VALUES ($1, $2, 'active', 'free', 5, 3)
        RETURNING id, subdomain`,
-      [tenantName.trim(), subdomain.trim()]
+      [tenantName, subdomain]
     );
 
-    const tenantId = tenantResult.rows[0].id;
+    const tenantId = tenantRes.rows[0].id;
 
-    /* ---- CHECK EMAIL (PER TENANT) ---- */
-    const emailCheck = await client.query(
-      'SELECT id FROM users WHERE email = $1 AND tenant_id = $2',
-      [adminEmail, tenantId]
-    );
-
-    if (emailCheck.rowCount > 0) {
-      await client.query('ROLLBACK');
-      return res.status(409).json({
-        success: false,
-        message: 'Email already exists in this tenant'
-      });
-    }
-
-    /* ---- HASH PASSWORD ---- */
+    // Hash password
     const passwordHash = await bcrypt.hash(adminPassword, 10);
 
-    /* ---- CREATE TENANT ADMIN ---- */
-    const userResult = await client.query(
-      `INSERT INTO users
-       (tenant_id, email, password_hash, full_name, role)
+    // Create tenant admin
+    const userRes = await db.query(
+      `INSERT INTO users (tenant_id, email, password_hash, full_name, role)
        VALUES ($1, $2, $3, $4, 'tenant_admin')
        RETURNING id, email, full_name, role`,
-      [tenantId, adminEmail, passwordHash, adminFullName.trim()]
+      [tenantId, adminEmail, passwordHash, adminFullName]
     );
 
-    await client.query('COMMIT');
+    await db.query('COMMIT');
 
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
       message: 'Tenant registered successfully',
       data: {
         tenantId,
         subdomain,
         adminUser: {
-          id: userResult.rows[0].id,
-          email: userResult.rows[0].email,
-          fullName: userResult.rows[0].full_name,
-          role: userResult.rows[0].role
+          id: userRes.rows[0].id,
+          email: userRes.rows[0].email,
+          fullName: userRes.rows[0].full_name,
+          role: userRes.rows[0].role
         }
       }
     });
-
   } catch (err) {
-    await client.query('ROLLBACK');
-    console.error('REGISTER TENANT ERROR:', err);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error during registration'
-    });
-  } finally {
-    client.release();
+    await db.query('ROLLBACK');
+    next(err);
   }
 };
 
-/* ================================
-   API 2: LOGIN
-================================ */
+/**
+ * API 2: Login
+ * POST /api/auth/login
+ */
 exports.login = async (req, res, next) => {
   const { email, password, tenantSubdomain } = req.body;
 
-  if (!email || !password || !tenantSubdomain) {
-    return res.status(400).json({
-      success: false,
-      message: 'Email, password and tenant subdomain are required'
-    });
-  }
-
   try {
-    const tenantRes = await pool.query(
-      'SELECT * FROM tenants WHERE subdomain = $1',
+    /* ================= SUPER ADMIN LOGIN ================= */
+    const superAdminRes = await db.query(
+      'SELECT * FROM users WHERE email=$1 AND role=$2 AND is_active=true',
+      [email, 'super_admin']
+    );
+
+    if (superAdminRes.rowCount > 0) {
+      const superAdmin = superAdminRes.rows[0];
+
+      const match = await bcrypt.compare(password, superAdmin.password_hash);
+      if (!match) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid credentials'
+        });
+      }
+
+      const token = jwt.sign(
+        { id: superAdmin.id, role: superAdmin.role },
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      return res.json({
+        success: true,
+        data: {
+          user: {
+            id: superAdmin.id,
+            email: superAdmin.email,
+            fullName: superAdmin.full_name,
+            role: superAdmin.role
+          },
+          token,
+          expiresIn: 86400
+        }
+      });
+    }
+
+    /* ================= TENANT LOGIN (EXISTING LOGIC) ================= */
+
+    if (!tenantSubdomain) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tenant subdomain is required'
+      });
+    }
+
+    const tenantRes = await db.query(
+      'SELECT * FROM tenants WHERE subdomain=$1',
       [tenantSubdomain]
     );
 
     if (tenantRes.rowCount === 0) {
-      return res.status(404).json({ success: false, message: 'Tenant not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'Tenant not found'
+      });
     }
 
     if (tenantRes.rows[0].status !== 'active') {
-      return res.status(403).json({ success: false, message: 'Tenant suspended' });
+      return res.status(403).json({
+        success: false,
+        message: 'Tenant suspended'
+      });
     }
 
     const tenantId = tenantRes.rows[0].id;
 
-    const userRes = await pool.query(
-      'SELECT * FROM users WHERE email = $1 AND tenant_id = $2 AND is_active = true',
+    const userRes = await db.query(
+      'SELECT * FROM users WHERE email=$1 AND tenant_id=$2 AND is_active=true',
       [email, tenantId]
     );
 
     if (userRes.rowCount === 0) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
     }
 
     const user = userRes.rows[0];
     const match = await bcrypt.compare(password, user.password_hash);
 
     if (!match) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
     }
 
     const token = jwt.sign(
@@ -179,23 +193,26 @@ exports.login = async (req, res, next) => {
   }
 };
 
-/* ================================
-   API 3: ME
-================================ */
+/**
+ * API 3: Get Current User
+ * GET /api/auth/me
+ */
 exports.me = async (req, res, next) => {
   try {
-    const userRes = await pool.query(
+    const userRes = await db.query(
       `SELECT u.id, u.email, u.full_name, u.role, u.is_active,
-              t.id AS tenant_id, t.name, t.subdomain,
-              t.subscription_plan, t.max_users, t.max_projects
+              t.id AS tenant_id, t.name, t.subdomain, t.subscription_plan, t.max_users, t.max_projects
        FROM users u
        LEFT JOIN tenants t ON u.tenant_id = t.id
-       WHERE u.id = $1`,
+       WHERE u.id=$1`,
       [req.user.id]
     );
 
     if (userRes.rowCount === 0) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
     }
 
     const u = userRes.rows[0];
@@ -208,14 +225,16 @@ exports.me = async (req, res, next) => {
         fullName: u.full_name,
         role: u.role,
         isActive: u.is_active,
-        tenant: u.tenant_id ? {
-          id: u.tenant_id,
-          name: u.name,
-          subdomain: u.subdomain,
-          subscriptionPlan: u.subscription_plan,
-          maxUsers: u.max_users,
-          maxProjects: u.max_projects
-        } : null
+        tenant: u.tenant_id
+          ? {
+              id: u.tenant_id,
+              name: u.name,
+              subdomain: u.subdomain,
+              subscriptionPlan: u.subscription_plan,
+              maxUsers: u.max_users,
+              maxProjects: u.max_projects
+            }
+          : null
       }
     });
   } catch (err) {
@@ -223,12 +242,13 @@ exports.me = async (req, res, next) => {
   }
 };
 
-/* ================================
-   API 4: LOGOUT
-================================ */
+/**
+ * API 4: Logout
+ * POST /api/auth/logout
+ */
 exports.logout = async (req, res) => {
   await logAudit({
-    tenant_id: req.user.tenant_id,
+    tenant_id: req.user.tenant_id || null,
     user_id: req.user.id,
     action: 'LOGOUT',
     entity_type: 'user',
@@ -236,5 +256,8 @@ exports.logout = async (req, res) => {
     ip_address: req.ip
   });
 
-  res.json({ success: true, message: 'Logged out successfully' });
+  res.json({
+    success: true,
+    message: 'Logged out successfully'
+  });
 };
