@@ -1,148 +1,260 @@
-📌 Multi-Tenant SaaS Platform
-Project & Task Management System
-A full-stack multi-tenant SaaS application built with Node.js, Express, PostgreSQL, React, and Docker, supporting tenant isolation, role-based access control, and project/task management.
-🚀 Features
-🔐 Authentication & Authorization
-JWT-based authentication
-Role-based access control:
-Super Admin
-Tenant Admin
-User
-Secure password hashing using bcrypt
-Token expiry handling
-🏢 Multi-Tenant Architecture
-Each tenant has isolated data
-Tenant-specific users, projects, and tasks
-Subdomain-based tenant login
-📁 Project Management
-Create, list, update, delete projects
-Project limits enforced per tenant plan
-Task counts & completion tracking
-✅ Task Management
-Create tasks under projects
-Assign tasks to users
-Update task status (todo / in_progress / completed)
-Delete tasks
-Priority & due-date support
-👥 User Management
-Tenant Admin can add/edit/delete users
-Role assignment (user / tenant_admin)
-Active/inactive user status
-📊 Dashboard
-Total projects count
-Total tasks count
-Completed & pending tasks
-Recent projects
-My assigned tasks
-🛠 Tech Stack
-Frontend
-React (Vite)
-JavaScript
-CSS (custom dark UI)
-Backend
-Node.js
-Express.js
-PostgreSQL
-JWT
-bcrypt
-DevOps
-Docker
-Docker Compose
-Database migrations & seed scripts
-🐳 Running the Application (Docker)
-Prerequisites
-Docker
-Docker Compose
-Build & Start Services
-Copy code
-Bash
+# Multi-Tenant SaaS Platform – Project & Task Management System
+
+A full-stack **Multi-Tenant SaaS Application** that enables organizations (tenants) to manage projects, tasks, and users with strict tenant isolation, role-based access control, and a modern dashboard UI.
+
+This project is fully **Dockerized** and uses **PostgreSQL inside Docker**, so **no local database installation is required**.
+
+---
+
+## 🚀 Features
+
+### 🏢 Multi-Tenant Architecture
+- Each tenant has isolated data (projects, tasks, users)
+- Tenant identification using **subdomain**
+- Secure tenant-level access control
+
+### 👥 Role-Based Access Control
+- **Super Admin**
+- **Tenant Admin**
+- **User**
+
+### 📊 Dashboard
+- Total projects count
+- Total tasks count
+- Completed & pending tasks
+- Recent projects
+- Tasks assigned to current user
+
+### 📁 Project Management
+- Create, update, delete projects
+- Project status: `active`, `archived`, `completed`
+- Project-level task tracking
+
+### ✅ Task Management
+- Create, update, delete tasks
+- Task status: `todo`, `in_progress`, `completed`
+- Assign tasks to users
+- Priority levels: `low`, `medium`, `high`
+
+### 👤 User Management
+- Add, edit, delete users (Tenant Admin only)
+- Assign roles (`tenant_admin`, `user`)
+- Activate / deactivate users
+
+### 🔐 Security
+- Password hashing using **bcrypt**
+- JWT-based authentication
+- Token expiry handling
+- Role-based authorization middleware
+- Input validation on all APIs
+- Audit logging for important actions
+
+---
+
+## 🧱 Tech Stack
+
+### Frontend
+- React (Vite)
+- Axios
+- React Router
+- Custom CSS (Dark UI theme)
+
+### Backend
+- Node.js
+- Express.js
+- PostgreSQL
+- JWT Authentication
+- bcrypt
+
+### Infrastructure
+- Docker
+- Docker Compose
+- PostgreSQL (Dockerized)
+- Database migrations & seed data
+
+---
+
+## 🐳 Running the Application (Docker)
+
+### Prerequisites
+- Docker
+- Docker Compose
+
+### Build and Start Services
+```bash
 docker-compose up -d --build
-🌐 Access URLs
-Service
-URL
-Frontend
-http://localhost:3000
-Backend API
-http://localhost:5000
-Health Check
-http://localhost:5000/api/health
-PostgreSQL
-localhost:5432
-🗄 Database
-PostgreSQL runs inside Docker
-Tables are created automatically using migration scripts
-Seed data is inserted on startup
-No local PostgreSQL installation required
-Verify Tables
-Copy code
-Bash
-docker exec -it database psql -U postgres
+
+## Project Structure
+
+```text
+multi-tenant-saas/
+│
+├── docker-compose.yml
+├── README.md
+├── API.md
+├── submission.json
+│
+├── backend/
+│   ├── Dockerfile
+│   ├── package.json
+│   ├── migrations/
+│   └── src/
+│       ├── controllers/
+│       ├── routes/
+│       ├── middleware/
+│       ├── services/
+│       ├── validators/
+│       ├── config/
+│       └── app.js
+│
+├── frontend/
+│   ├── Dockerfile
+│   ├── package.json
+│   └── src/
+│       ├── pages/
+│       ├── components/
+│       ├── auth/
+│       └── services/
+
+
+## System Architecture
+
+Client (Browser)
+        |
+        v
+Frontend (React)
+        |
+        v
+Backend API (Node.js + Express)
+        |
+        v
+PostgreSQL Database (Multi-Tenant)
+
+All services communicate via REST APIs and run inside Docker containers.
+
+## Running the Application (Docker)
+Prerequisites
+
+Docker
+
+Docker Compose
+
+## Build and start all services
+docker-compose up -d --build
+
+Access URLs
+Service	URL
+## Frontend	http://localhost:3000
+
+## Backend API	http://localhost:5000
+
+## Health Check	http://localhost:5000/api/health
+
+## PostgreSQL	localhost:5432
+Database
+
+## PostgreSQL runs inside Docker
+
+Tables are created using migration scripts on container startup
+
+No local PostgreSQL installation is required
+
+## To verify tables:
+
+## docker exec -it database psql -U postgres
 \c multi_tenant_saas
 \dt
-🌱 Seed Data (Default Logins)
-🔑 Super Admin
-(Does NOT require tenant subdomain)
+
+Seed Data (Test Credentials)
+Super Admin
 Email: superadmin@system.com
 Password: Admin@123
 Role: super_admin
-🏢 Demo Tenant
+
+Demo Tenant
 Tenant Name: Demo Company
 Subdomain: demo
-Plan: Pro
+Plan: pro
+
 Tenant Admin
 Email: admin@demo.com
 Password: Demo@123
 Role: tenant_admin
-Subdomain: demo
+
 Regular Users
-Email
-Password
-user1@demo.com
-User@123
-user2@demo.com
-User@123
-👉 Tenant Admin & Users MUST login with subdomain
-👉 Super Admin login does NOT use subdomain
-📘 API Documentation
+user1@demo.com / User@123
+user2@demo.com / User@123
+
+## API Documentation
+
 All backend APIs are documented in:
-Copy code
 
 API.md
+
 Includes:
+
 Authentication APIs
+
 Tenant APIs
+
 User APIs
+
 Project APIs
+
 Task APIs
-Request & response formats
-Authorization rules
-🔒 Security
-Passwords hashed using bcrypt
-JWT tokens with expiration
+
+Request and response formats
+
+Security
+
+Passwords are hashed using bcrypt
+
+JWT tokens with expiry
+
 Tenant-level data isolation
+
 Role-based authorization middleware
-Input validation on all endpoints
-🧪 Testing
+
+Input validation for all endpoints
+
+Testing
+
 Backend APIs tested using Postman
+
 Frontend tested via browser
+
 Docker health checks verified
-Seed logins verified
-🚀 Deployment Ready
+
+Deployment Readiness
+
 Fully Dockerized
+
 Environment-based configuration
+
 Can be deployed to:
+
 AWS
+
 Azure
+
 GCP
+
 Docker Swarm
+
 Kubernetes
-📦 Submission Notes
-✅ Meets all assignment requirements
-✅ Proper multi-tenant architecture
-✅ Docker-based database (no local dependency)
-✅ Secure & scalable design
-✅ Real-world SaaS patterns implemented
-👨‍💻 Author
-Developer: Your Name
+
+Submission Notes
+
+Meets all assignment requirements
+
+Multi-tenant architecture implemented correctly
+
+Docker-based database (no local dependency)
+
+Secure, scalable, and modular design
+
+### Author
+
+Developer: ## Kalesha Vali Dokuparthi
 Project Type: Full-Stack SaaS Application
-Purpose: Skill demonstration & real-world system design
+Purpose: Skill demonstration and real-world SaaS system design
