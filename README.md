@@ -117,6 +117,8 @@ multi-tenant-saas/
 │       └── services/
 
 
+
+
 ## System Architecture
 
 Client (Browser)
@@ -139,73 +141,80 @@ Docker
 
 Docker Compose
 
-## Build and start all services
+### Build and start all services
 docker-compose up -d --build
 
-Access URLs
-Service	URL
-## Frontend	http://localhost:3000
+### 🌐 Access URLs
 
-## Backend API	http://localhost:5000
+| Service        | URL                                   |
+|---------------|---------------------------------------|
+| Frontend      | http://localhost:3000                 |
+| Backend API   | http://localhost:5000                 |
+| Health Check  | http://localhost:5000/api/health      |
+| PostgreSQL    | localhost:5432                        |
 
-## Health Check	http://localhost:5000/api/health
+## 🗄️ Database Verification
 
-## PostgreSQL	localhost:5432
-Database
+PostgreSQL runs inside Docker. No local installation is required.
 
-## PostgreSQL runs inside Docker
-
-Tables are created using migration scripts on container startup
-
-No local PostgreSQL installation is required
-
-## To verify tables:
-
-## docker exec -it database psql -U postgres
+### Verify tables
+```bash
+docker exec -it database psql -U postgres
 \c multi_tenant_saas
 \dt
 
+
 Seed Data (Test Credentials)
-Super Admin
-Email: superadmin@system.com
-Password: Admin@123
-Role: super_admin
+## 🌱 Seed Data (Default Test Credentials)
 
-Demo Tenant
-Tenant Name: Demo Company
-Subdomain: demo
-Plan: pro
+### 🔑 Super Admin
+| Field    | Value |
+|--------|-------|
+| Email  | superadmin@system.com |
+| Password | Admin@123 |
+| Role | super_admin |
+| Subdomain | Not Required |
 
-Tenant Admin
-Email: admin@demo.com
-Password: Demo@123
-Role: tenant_admin
+---
 
-Regular Users
-user1@demo.com / User@123
-user2@demo.com / User@123
+### 🏢 Demo Tenant
+| Field | Value |
+|-----|-------|
+| Tenant Name | Demo Company |
+| Subdomain | demo |
+| Plan | pro |
+
+---
+
+### 👤 Tenant Admin
+| Field | Value |
+|-----|-------|
+| Email | admin@demo.com |
+| Password | Demo@123 |
+| Role | tenant_admin |
+| Subdomain | demo |
+
+---
+
+### 👥 Regular Users
+| Email | Password | Role | Subdomain |
+|------|----------|------|-----------|
+| user1@demo.com | User@123 | user | demo |
+| user2@demo.com | User@123 | user | demo |
 
 ## API Documentation
 
 All backend APIs are documented in:
-
 API.md
-
 Includes:
-
 Authentication APIs
-
 Tenant APIs
-
 User APIs
-
 Project APIs
-
 Task APIs
-
 Request and response formats
 
-Security
+### Security
 
 Passwords are hashed using bcrypt
 
@@ -217,40 +226,17 @@ Role-based authorization middleware
 
 Input validation for all endpoints
 
-Testing
+###Testing
 
 Backend APIs tested using Postman
-
 Frontend tested via browser
-
 Docker health checks verified
 
-Deployment Readiness
-
-Fully Dockerized
-
-Environment-based configuration
-
-Can be deployed to:
-
-AWS
-
-Azure
-
-GCP
-
-Docker Swarm
-
-Kubernetes
-
-Submission Notes
+### Submission Notes
 
 Meets all assignment requirements
-
 Multi-tenant architecture implemented correctly
-
 Docker-based database (no local dependency)
-
 Secure, scalable, and modular design
 
 ### Author
